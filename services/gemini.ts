@@ -1,11 +1,9 @@
 
-import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
-
-// Fix: Initialize GoogleGenAI exclusively with process.env.API_KEY using named parameter
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+import { GoogleGenAI } from "@google/genai";
 
 export const getThinkingResponse = async (prompt: string): Promise<string> => {
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: prompt,
@@ -14,7 +12,6 @@ export const getThinkingResponse = async (prompt: string): Promise<string> => {
         temperature: 0.7,
       },
     });
-    // Fix: Access response text via .text property, not .text() method
     return response.text || "¡Caracoles! Mi brújula se perdió. ¿Podrías preguntar de nuevo?";
   } catch (error) {
     console.error("Error fetching Gemini response:", error);
@@ -24,6 +21,7 @@ export const getThinkingResponse = async (prompt: string): Promise<string> => {
 
 export const generateArt = async (prompt: string): Promise<string | null> => {
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: {
@@ -36,7 +34,6 @@ export const generateArt = async (prompt: string): Promise<string | null> => {
       }
     });
 
-    // Fix: Iterate through all parts to find the image part (inlineData)
     for (const part of response.candidates?.[0]?.content?.parts || []) {
       if (part.inlineData) {
         return `data:image/png;base64,${part.inlineData.data}`;
@@ -49,21 +46,19 @@ export const generateArt = async (prompt: string): Promise<string | null> => {
   }
 };
 
-export const searchKnowledge = async (query: string, location?: { latitude: number; longitude: number }): Promise<{text: string, sources: any[]}> => {
+export const searchKnowledge = async (query: string): Promise<{text: string, sources: any[]}> => {
   try {
-    const config: any = {
-      tools: [{ googleSearch: {} }]
-    };
-
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Explícame esto como si fuéramos en una expedición por la selva para niños de 4to grado: ${query}`,
-      config
+      config: {
+        tools: [{ googleSearch: {} }]
+      }
     });
 
     return {
       text: response.text || "",
-      // Fix: Extract grounding chunks to allow UI to list website URLs correctly
       sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
     };
   } catch (error) {
