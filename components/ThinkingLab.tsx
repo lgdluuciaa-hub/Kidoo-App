@@ -1,29 +1,31 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ChatMessage, SubjectId } from '../types';
+import { ChatMessage, SubjectId, TopicBlock } from '../types';
 import { getThinkingResponse } from '../services/gemini';
 
 interface ThinkingLabProps {
   subjectId: SubjectId;
+  topic: TopicBlock | null;
 }
 
-const ThinkingLab: React.FC<ThinkingLabProps> = ({ subjectId }) => {
+const ThinkingLab: React.FC<ThinkingLabProps> = ({ subjectId, topic }) => {
   const getInitialMessage = () => {
+    if (topic) return `¡Hola! Soy Kidoo 🦁. Hoy vamos a ser expertos en "${topic.title}". ${topic.description}. ¿Qué quieres aprender primero sobre esto?`;
+    
     switch(subjectId) {
-      case 'math': return "¡Hola genio de los números! 🔢 ¿Quieres practicar fracciones o resolver algún problema de geometría hoy?";
-      case 'language': return "¡Hola gran lector! 📚 ¿En qué práctica de lectura o escritura te puedo ayudar hoy?";
-      case 'science': return "¡Hola científico de la selva! 🧪 ¿Hablamos de nutrición, ecosistemas o electricidad?";
-      case 'civics': return "¡Hola ciudadano ejemplar! ⚖️ ¿Quieres aprender sobre tus derechos o el cuidado ambiental?";
+      case 'math': return "¡Hola genio de los números! 🔢 ¿Qué desafío matemático resolveremos hoy?";
       default: return "¡Hola explorador! 🐒 Soy Kidoo. ¿En qué te puedo ayudar hoy?";
     }
   };
 
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'model', text: getInitialMessage() }
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMessages([{ role: 'model', text: getInitialMessage() }]);
+  }, [topic, subjectId]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -39,8 +41,8 @@ const ThinkingLab: React.FC<ThinkingLabProps> = ({ subjectId }) => {
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setIsLoading(true);
 
-    const subjectContext = `El estudiante de 4to grado está en el módulo de ${subjectId}. `;
-    const finalPrompt = `${subjectContext}Pregunta: ${userMsg}`;
+    const subjectContext = `El estudiante de 4to grado de primaria en México está en el bloque de "${topic?.title}" de la materia ${subjectId}. El objetivo es: ${topic?.description}. `;
+    const finalPrompt = `${subjectContext}Pregunta del niño: ${userMsg}`;
 
     const response = await getThinkingResponse(finalPrompt);
     setMessages(prev => [...prev, { role: 'model', text: response }]);
@@ -57,26 +59,16 @@ const ThinkingLab: React.FC<ThinkingLabProps> = ({ subjectId }) => {
     }
   };
 
-  const getSubjectIcon = () => {
-    switch(subjectId) {
-      case 'math': return '🔢';
-      case 'language': return '📚';
-      case 'science': return '🧪';
-      case 'civics': return '⚖️';
-      default: return '🐒';
-    }
-  };
-
   return (
     <div className={`max-w-4xl mx-auto h-[75vh] flex flex-col bg-white rounded-[3rem] shadow-2xl overflow-hidden border-[12px] ${getSubjectColor().split(' ')[0]}`}>
       <div className={`${getSubjectColor().split(' ')[1]} p-6 flex items-center justify-between`}>
         <div className="flex items-center gap-4">
           <div className="bg-white p-3 rounded-2xl text-4xl shadow-md">
-            {getSubjectIcon()}
+            {topic?.icon || '🐒'}
           </div>
           <div>
-            <h2 className="text-white text-2xl font-black tracking-tight">Kidoo: {subjectId === 'civics' ? 'Cívica' : subjectId.charAt(0).toUpperCase() + subjectId.slice(1)}</h2>
-            <p className="text-white/80 text-xs font-bold uppercase tracking-wider">Tutor Personalizado</p>
+            <h2 className="text-white text-2xl font-black tracking-tight">{topic?.title || 'Kidoo Lab'}</h2>
+            <p className="text-white/80 text-xs font-bold uppercase tracking-wider">{subjectId.toUpperCase()}</p>
           </div>
         </div>
       </div>
@@ -112,7 +104,7 @@ const ThinkingLab: React.FC<ThinkingLabProps> = ({ subjectId }) => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-          placeholder={`Pregunta sobre tu materia de ${subjectId}...`}
+          placeholder={`Escribe aquí sobre ${topic?.title}...`}
           className="flex-1 px-8 py-5 bg-slate-100 rounded-3xl outline-none focus:ring-4 ring-emerald-500/20 text-lg transition-all font-bold placeholder-slate-400"
         />
         <button
