@@ -10,11 +10,11 @@ export enum AppView {
   DASHBOARD = 'DASHBOARD',
   TOPIC_SELECTION = 'TOPIC_SELECTION',
   THINKING_LAB = 'THINKING_LAB',
-  ART_STUDIO = 'ART_STUDIO',
-  WORLD_EXPLORER = 'WORLD_EXPLORER'
+  WORLD_EXPLORER = 'WORLD_EXPLORER',
+  SUBJECT_GAME = 'SUBJECT_GAME'
 }
 
-export type SubjectId = 'math' | 'language' | 'science' | 'history' | 'geography' | 'civics' | 'art';
+export type SubjectId = 'math' | 'language' | 'science' | 'history' | 'geography' | 'civics';
 
 export interface TopicBlock {
   id: string;
