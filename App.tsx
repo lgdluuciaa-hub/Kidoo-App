@@ -1,16 +1,18 @@
 
 import React, { useState } from 'react';
-import { User, AppView, SubjectId } from './types';
+import { User, AppView, SubjectId, TopicBlock } from './types';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import ThinkingLab from './components/ThinkingLab';
 import ArtStudio from './components/ArtStudio';
 import DiscoveryWorld from './components/DiscoveryWorld';
+import TopicSelection from './components/TopicSelection';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [view, setView] = useState<AppView>(AppView.LOGIN);
   const [selectedSubject, setSelectedSubject] = useState<SubjectId>('math');
+  const [selectedTopic, setSelectedTopic] = useState<TopicBlock | null>(null);
 
   const handleLogin = (newUser: User) => {
     setUser(newUser);
@@ -18,6 +20,12 @@ const App: React.FC = () => {
   };
 
   const handleBackToDashboard = () => setView(AppView.DASHBOARD);
+  
+  const handleSelectTopic = (targetView: AppView, topic: TopicBlock) => {
+    setSelectedTopic(topic);
+    setView(targetView);
+  };
+
   const handleLogout = () => {
     setUser(null);
     setView(AppView.LOGIN);
@@ -55,12 +63,16 @@ const App: React.FC = () => {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Volver al Mapa
+              Volver
             </button>
             
             <div className="hidden sm:flex items-center gap-2 bg-black/20 px-4 py-1.5 rounded-full border border-white/10">
               <span className="text-white text-xs font-black uppercase tracking-tighter">
-                Módulo actual: <span className="text-amber-400">{selectedSubject.toUpperCase()}</span>
+                {selectedTopic ? (
+                    <>Misión: <span className="text-amber-400">{selectedTopic.title}</span></>
+                ) : (
+                    <>Módulo: <span className="text-amber-400">{selectedSubject.toUpperCase()}</span></>
+                )}
               </span>
             </div>
 
@@ -81,14 +93,20 @@ const App: React.FC = () => {
             setSelectedSubject={setSelectedSubject} 
           />
         )}
+        {view === AppView.TOPIC_SELECTION && (
+          <TopicSelection 
+            subjectId={selectedSubject} 
+            onSelectTopic={handleSelectTopic} 
+          />
+        )}
         {view === AppView.THINKING_LAB && (
-          <ThinkingLab subjectId={selectedSubject} />
+          <ThinkingLab subjectId={selectedSubject} topic={selectedTopic} />
         )}
         {view === AppView.ART_STUDIO && (
           <ArtStudio />
         )}
         {view === AppView.WORLD_EXPLORER && (
-          <DiscoveryWorld subjectId={selectedSubject} />
+          <DiscoveryWorld subjectId={selectedSubject} topic={selectedTopic} />
         )}
       </main>
 
