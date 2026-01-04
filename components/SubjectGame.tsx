@@ -13,7 +13,40 @@ const GAME_TYPES = {
   SHOOTER: 'shooter',
   MATCHER: 'matcher',
   MATH_INPUT: 'math_input'
-};
+} as const;
+
+interface MathLevel { q: string; a: string; }
+interface PuzzleLevel { pieces: number[]; solved: number[]; icon: string; }
+
+interface BaseConfig {
+  title: string;
+  instruction: string;
+}
+
+interface MathConfig extends BaseConfig {
+  type: typeof GAME_TYPES.MATH_INPUT;
+  levels: MathLevel[];
+}
+
+interface PuzzleConfig extends BaseConfig {
+  type: typeof GAME_TYPES.PUZZLE;
+  levels: PuzzleLevel[];
+}
+
+interface MatcherConfig extends BaseConfig {
+  type: typeof GAME_TYPES.MATCHER;
+  left: string[];
+  right: string[];
+  pairs: Record<number, number>;
+}
+
+interface ShooterConfig extends BaseConfig {
+  type: typeof GAME_TYPES.SHOOTER;
+  options: string[];
+  correct: number;
+}
+
+type GameConfig = MathConfig | PuzzleConfig | MatcherConfig | ShooterConfig;
 
 const SubjectGame: React.FC<SubjectGameProps> = ({ topic, subjectId, onFinish }) => {
   const [currentLevel, setCurrentLevel] = useState(0);
@@ -21,7 +54,6 @@ const SubjectGame: React.FC<SubjectGameProps> = ({ topic, subjectId, onFinish })
   const [feedback, setFeedback] = useState<'success' | 'error' | null>(null);
   const [score, setScore] = useState(0);
   
-  // States for specific games
   const [mathValue, setMathValue] = useState('');
   const [puzzlePieces, setPuzzlePieces] = useState<number[]>([]);
   const [matchedItems, setMatchedItems] = useState<number[]>([]);
@@ -29,8 +61,7 @@ const SubjectGame: React.FC<SubjectGameProps> = ({ topic, subjectId, onFinish })
   
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Game Definitions per Subject (Bloque 1)
-  const getGameConfig = () => {
+  const getGameConfig = (): GameConfig | null => {
     switch(subjectId) {
       case 'math': return {
         type: GAME_TYPES.MATH_INPUT,
@@ -58,7 +89,7 @@ const SubjectGame: React.FC<SubjectGameProps> = ({ topic, subjectId, onFinish })
         instruction: 'Une cada sistema con su órgano principal.',
         left: ['S. Respiratorio', 'S. Digestivo', 'S. Óseo', 'S. Circulatorio'],
         right: ['Corazón', 'Huesos', 'Estómago', 'Pulmones'],
-        pairs: { 0: 3, 1: 2, 2: 1, 3: 0 } as Record<number, number>
+        pairs: { 0: 3, 1: 2, 2: 1, 3: 0 }
       };
       case 'history': return {
         type: GAME_TYPES.MATCHER,
@@ -66,7 +97,7 @@ const SubjectGame: React.FC<SubjectGameProps> = ({ topic, subjectId, onFinish })
         instruction: 'Relaciona la cultura con su legado.',
         left: ['Olmecas', 'Mayas', 'Mexicas (Aztecas)', 'Zapotecas'],
         right: ['Gran Tenochtitlan', 'Cabezas Gigantes', 'Monte Albán', 'Calendario y Cero'],
-        pairs: { 0: 1, 1: 3, 2: 0, 3: 2 } as Record<number, number>
+        pairs: { 0: 1, 1: 3, 2: 0, 3: 2 }
       };
       case 'geography': return {
         type: GAME_TYPES.SHOOTER,
@@ -82,9 +113,8 @@ const SubjectGame: React.FC<SubjectGameProps> = ({ topic, subjectId, onFinish })
   const config = getGameConfig();
 
   useEffect(() => {
-    // FIX: Using type assertion to access 'pieces' property on levels for PUZZLE game
-    if (config?.type === GAME_TYPES.PUZZLE && 'levels' in config) {
-      setPuzzlePieces((config.levels[0] as any).pieces);
+    if (config?.type === GAME_TYPES.PUZZLE) {
+      setPuzzlePieces(config.levels[0].pieces);
     }
     if (config?.type === GAME_TYPES.MATH_INPUT) {
       inputRef.current?.focus();
@@ -95,52 +125,56 @@ const SubjectGame: React.FC<SubjectGameProps> = ({ topic, subjectId, onFinish })
 
   const handleMathSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // FIX: Using type assertion to access 'a' property (answer) on levels for MATH_INPUT game
-    if ('levels' in config && mathValue === (config.levels[currentLevel] as any).a) {
-      handleSuccess();
-      setMathValue('');
-    } else {
-      handleError();
+    if (config.type === GAME_TYPES.MATH_INPUT) {
+      if (mathValue === config.levels[currentLevel].a) {
+        handleSuccess();
+        setMathValue('');
+      } else {
+        handleError();
+      }
     }
   };
 
   const handlePuzzleClick = (idx: number) => {
-    const newPieces = [...puzzlePieces];
-    const nextIdx = (idx + 1) % puzzlePieces.length;
-    // Simple swap for demo puzzle
-    [newPieces[idx], newPieces[nextIdx]] = [newPieces[nextIdx], newPieces[idx]];
-    setPuzzlePieces(newPieces);
-    
-    // FIX: Using type assertion to access 'solved' property on levels for PUZZLE game
-    if ('levels' in config && JSON.stringify(newPieces) === JSON.stringify((config.levels[0] as any).solved)) {
-      handleSuccess();
+    if (config.type === GAME_TYPES.PUZZLE) {
+      const newPieces = [...puzzlePieces];
+      const nextIdx = (idx + 1) % puzzlePieces.length;
+      [newPieces[idx], newPieces[nextIdx]] = [newPieces[nextIdx], newPieces[idx]];
+      setPuzzlePieces(newPieces);
+      
+      if (JSON.stringify(newPieces) === JSON.stringify(config.levels[0].solved)) {
+        handleSuccess();
+      }
     }
   };
 
   const handleMatcherClick = (idx: number, isRight: boolean) => {
-    if (!isRight) {
-      setSelectedInColumn(idx);
-    } else if (selectedInColumn !== null) {
-      // FIX: Accessing 'pairs' safely via type assertion since not all configs have it
-      if ('pairs' in config && (config as any).pairs[selectedInColumn] === idx) {
-        setMatchedItems([...matchedItems, selectedInColumn]);
-        setSelectedInColumn(null);
-        if (matchedItems.length + 1 === (config as any).left.length) {
-          handleSuccess();
+    if (config.type === GAME_TYPES.MATCHER) {
+      if (!isRight) {
+        setSelectedInColumn(idx);
+      } else if (selectedInColumn !== null) {
+        if (config.pairs[selectedInColumn] === idx) {
+          const newMatched = [...matchedItems, selectedInColumn];
+          setMatchedItems(newMatched);
+          setSelectedInColumn(null);
+          if (newMatched.length === config.left.length) {
+            handleSuccess();
+          }
+        } else {
+          handleError();
+          setSelectedInColumn(null);
         }
-      } else {
-        handleError();
-        setSelectedInColumn(null);
       }
     }
   };
 
   const handleShooterClick = (idx: number) => {
-    // FIX: Accessing 'correct' property safely via type assertion for SHOOTER game
-    if ('correct' in config && idx === (config as any).correct) {
-      handleSuccess();
-    } else {
-      handleError();
+    if (config.type === GAME_TYPES.SHOOTER) {
+      if (idx === config.correct) {
+        handleSuccess();
+      } else {
+        handleError();
+      }
     }
   };
 
@@ -149,8 +183,7 @@ const SubjectGame: React.FC<SubjectGameProps> = ({ topic, subjectId, onFinish })
     setScore(s => s + 20);
     setTimeout(() => {
       setFeedback(null);
-      // FIX: Using type assertion to check levels length for MATH_INPUT game transitions
-      if (config.type === GAME_TYPES.MATH_INPUT && 'levels' in config && currentLevel < (config.levels as any[]).length - 1) {
+      if (config.type === GAME_TYPES.MATH_INPUT && currentLevel < config.levels.length - 1) {
         setCurrentLevel(l => l + 1);
       } else {
         setIsFinished(true);
@@ -184,12 +217,10 @@ const SubjectGame: React.FC<SubjectGameProps> = ({ topic, subjectId, onFinish })
 
           {!isFinished ? (
             <div className="w-full">
-              {/* MATH INPUT GAME */}
-              {config.type === GAME_TYPES.MATH_INPUT && 'levels' in config && (
+              {config.type === GAME_TYPES.MATH_INPUT && (
                 <div className="text-center space-y-10">
                   <div className="text-7xl font-black text-blue-600 bg-white p-12 rounded-[3rem] shadow-xl inline-block border-8 border-blue-100">
-                    {/* FIX: Using type assertion to access question 'q' on current level */}
-                    {(config.levels[currentLevel] as any).q}
+                    {config.levels[currentLevel].q}
                   </div>
                   <form onSubmit={handleMathSubmit} className="flex flex-col items-center gap-6">
                     <input 
@@ -208,7 +239,6 @@ const SubjectGame: React.FC<SubjectGameProps> = ({ topic, subjectId, onFinish })
                 </div>
               )}
 
-              {/* PUZZLE GAME */}
               {config.type === GAME_TYPES.PUZZLE && (
                 <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
                   {puzzlePieces.map((p, i) => (
@@ -223,11 +253,10 @@ const SubjectGame: React.FC<SubjectGameProps> = ({ topic, subjectId, onFinish })
                 </div>
               )}
 
-              {/* MATCHER GAME */}
-              {config.type === GAME_TYPES.MATCHER && 'left' in config && 'right' in config && (
+              {config.type === GAME_TYPES.MATCHER && (
                 <div className="grid grid-cols-2 gap-12 w-full max-w-2xl mx-auto">
                   <div className="space-y-4">
-                    {(config as any).left.map((item: string, i: number) => (
+                    {config.left.map((item, i) => (
                       <button 
                         key={i} 
                         disabled={matchedItems.includes(i)}
@@ -242,7 +271,7 @@ const SubjectGame: React.FC<SubjectGameProps> = ({ topic, subjectId, onFinish })
                     ))}
                   </div>
                   <div className="space-y-4">
-                    {(config as any).right.map((item: string, i: number) => (
+                    {config.right.map((item, i) => (
                       <button 
                         key={i} 
                         onClick={() => handleMatcherClick(i, true)}
@@ -255,10 +284,9 @@ const SubjectGame: React.FC<SubjectGameProps> = ({ topic, subjectId, onFinish })
                 </div>
               )}
 
-              {/* SHOOTER GAME */}
-              {config.type === GAME_TYPES.SHOOTER && 'options' in config && (
+              {config.type === GAME_TYPES.SHOOTER && (
                 <div className="grid grid-cols-2 gap-6 w-full max-w-md mx-auto">
-                  {(config as any).options.map((opt: string, i: number) => (
+                  {config.options.map((opt, i) => (
                     <button 
                       key={i} 
                       onClick={() => handleShooterClick(i)}
