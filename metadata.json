@@ -1,0 +1,7 @@
+{
+  "name": "Kidoo: Aventura en la Selva",
+  "description": "Una plataforma interactiva para niños de 4to año de primaria diseñada para fomentar el aprendizaje a través de la IA, con un bioma de selva y animales.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
