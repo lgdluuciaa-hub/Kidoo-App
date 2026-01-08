@@ -1,6 +1,8 @@
 
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+// Use node:process to ensure types for process.cwd() are available in the Node.js environment
+import process from 'node:process';
 
 export default defineConfig(({ mode }) => {
   // Carga las variables de entorno (incluyendo la que pondrás en Vercel)

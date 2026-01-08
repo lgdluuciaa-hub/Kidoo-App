@@ -1,5 +1,5 @@
 
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Modality } from "@google/genai";
 
 export const getThinkingResponse = async (prompt: string): Promise<string> => {
   try {
@@ -64,5 +64,36 @@ export const searchKnowledge = async (query: string): Promise<{text: string, sou
   } catch (error) {
     console.error("Error in knowledge search:", error);
     return { text: "No pude encontrar el rastro en mis libros de expedición.", sources: [] };
+  }
+};
+
+export const textToSpeech = async (text: string): Promise<Uint8Array | null> => {
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-preview-tts",
+      contents: [{ parts: [{ text: `Lee esto con voz amigable y entusiasta para un niño: ${text}` }] }],
+      config: {
+        responseModalities: [Modality.AUDIO],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: { voiceName: 'Kore' },
+          },
+        },
+      },
+    });
+    const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    if (base64Audio) {
+      const binaryString = atob(base64Audio);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return bytes;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error in TTS:", error);
+    return null;
   }
 };

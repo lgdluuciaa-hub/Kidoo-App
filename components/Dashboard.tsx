@@ -1,8 +1,10 @@
 
 import React from 'react';
 import { User, AppView, Subject, SubjectId } from '../types';
+import { AvatarIcon } from './AvatarIcon';
 
 export const SUBJECTS: Subject[] = [
+  // ... (mismos sujetos que antes)
   {
     id: 'language',
     title: "Lenguajes",
@@ -100,18 +102,31 @@ const Dashboard: React.FC<{ user: User; setView: (v: AppView) => void; setSelect
     setSelectedSubject(subjectId);
     setView(AppView.TOPIC_SELECTION);
   };
+  
   return (
     <div className="max-w-6xl mx-auto p-6 animate-fadeIn">
-      <header className="flex flex-col md:flex-row items-center justify-between bg-white/10 backdrop-blur-md p-6 rounded-[2.5rem] border-2 border-white/20 mb-8 shadow-xl">
+      <header className="flex flex-col md:flex-row items-center justify-between bg-white/20 backdrop-blur-md p-6 rounded-[2.5rem] border-2 border-white/20 mb-8 shadow-xl">
         <div className="flex items-center gap-6">
-          <div className="w-20 h-20 rounded-full border-4 border-amber-400 bg-white flex items-center justify-center text-5xl shadow-lg">{user.avatar}</div>
+          <div className="w-20 h-20 rounded-full border-4 border-amber-400 bg-white flex items-center justify-center p-3 shadow-lg">
+            <AvatarIcon id={user.avatar} />
+          </div>
           <div>
             <h2 className="text-3xl font-black text-white tracking-tight">¡Hola, {user.name}!</h2>
-            <div className="bg-amber-400 px-3 py-0.5 rounded-full mt-1 inline-block"><p className="text-green-900 font-black uppercase text-[10px]">Juega y Aprende</p></div>
+            <p className="text-emerald-100 font-bold uppercase text-xs tracking-widest mt-1">Explorador de 4to Grado</p>
           </div>
         </div>
-        <div className="hidden md:flex items-center gap-3 bg-green-800/40 px-6 py-3 rounded-2xl border border-white/10 text-white/80 font-black uppercase text-xs tracking-widest">Explorador 4to Grado 🎒</div>
+        
+        <div className="flex items-center gap-4 mt-4 md:mt-0">
+          <button 
+            onClick={() => setView(AppView.ADULT_PANEL)}
+            className="flex items-center gap-2 bg-slate-800/80 hover:bg-slate-800 text-white px-5 py-3 rounded-2xl border border-white/20 shadow-lg transition-all active:scale-95 group"
+          >
+            <span className="text-xl group-hover:rotate-12 transition-transform">🔒</span>
+            <span className="font-black uppercase text-[10px] tracking-widest">Tu progreso</span>
+          </button>
+        </div>
       </header>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {SUBJECTS.map((subject) => (
           <button key={subject.id} onClick={() => handleModuleClick(subject.id)} className={`${subject.color} group relative p-8 rounded-[2.5rem] text-left transition-all hover:-translate-y-2 hover:shadow-2xl border-b-8 border-black/20 overflow-hidden flex flex-col h-full`}>

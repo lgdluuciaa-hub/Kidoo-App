@@ -11,7 +11,8 @@ export enum AppView {
   TOPIC_SELECTION = 'TOPIC_SELECTION',
   THINKING_LAB = 'THINKING_LAB',
   WORLD_EXPLORER = 'WORLD_EXPLORER',
-  SUBJECT_GAME = 'SUBJECT_GAME'
+  SUBJECT_GAME = 'SUBJECT_GAME',
+  ADULT_PANEL = 'ADULT_PANEL'
 }
 
 export type SubjectId = 'math' | 'language' | 'science' | 'history' | 'geography' | 'civics';
@@ -36,4 +37,11 @@ export interface Subject {
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
+}
+
+export interface GameResult {
+  subject: string;
+  topic: string;
+  score: number;
+  date: string;
 }

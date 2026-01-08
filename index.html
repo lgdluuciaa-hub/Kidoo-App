@@ -10,26 +10,9 @@
     <style>
       body {
         font-family: 'Fredoka', sans-serif;
-        background: #064e3b;
+        background: #10b981;
         margin: 0;
         overflow-x: hidden;
-      }
-      .leaf {
-        position: absolute;
-        opacity: 0.4;
-        pointer-events: none;
-        animation: fall var(--duration) linear infinite;
-      }
-      @keyframes fall {
-        0% { transform: translateY(-10vh) translateX(0) rotate(0deg); }
-        100% { transform: translateY(110vh) translateX(50px) rotate(360deg); }
-      }
-      .floating {
-        animation: floating 4s ease-in-out infinite;
-      }
-      @keyframes floating {
-        0%, 100% { transform: translateY(0) rotate(0deg); }
-        50% { transform: translateY(-15px) rotate(2deg); }
       }
       .animate-fadeIn {
         animation: fadeIn 0.5s ease-out forwards;

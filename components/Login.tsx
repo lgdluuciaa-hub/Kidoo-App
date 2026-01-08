@@ -1,16 +1,17 @@
 
 import React, { useState } from 'react';
 import { User } from '../types';
+import { AvatarIcon, AvatarId } from './AvatarIcon';
 
 interface LoginProps {
   onLogin: (user: User) => void;
 }
 
-const ANIMAL_AVATARS = [
-  { id: 'lion', icon: '🦁', label: 'León', color: 'bg-orange-100' },
-  { id: 'monkey', icon: '🐒', label: 'Mono', color: 'bg-amber-100' },
-  { id: 'parrot', icon: '🦜', label: 'Guacamaya', color: 'bg-red-100' },
-  { id: 'elephant', icon: '🐘', label: 'Elefante', color: 'bg-blue-100' }
+const ANIMAL_AVATARS: { id: AvatarId; label: string; color: string; glow: string }[] = [
+  { id: 'tiger', label: 'Tigre', color: 'bg-orange-400', glow: 'ring-orange-200' },
+  { id: 'panda', label: 'Panda', color: 'bg-slate-300', glow: 'ring-slate-100' },
+  { id: 'koala', label: 'Koala', color: 'bg-emerald-400', glow: 'ring-emerald-200' },
+  { id: 'fox', label: 'Zorro', color: 'bg-amber-500', glow: 'ring-amber-200' }
 ];
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
@@ -23,7 +24,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     if (username.trim() && password.trim()) {
       onLogin({
         name: username.trim(),
-        avatar: selectedAvatar.icon, // Usamos el emoji como avatar
+        avatar: selectedAvatar.id,
         points: 0
       });
     } else {
@@ -32,88 +33,80 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-b from-green-900 via-emerald-800 to-amber-900">
-      {/* Jungle Leaves Animation */}
-      {[...Array(15)].map((_, i) => (
-        <div 
-          key={i} 
-          className="leaf text-4xl" 
-          style={{
-            top: `-50px`,
-            left: `${Math.random() * 100}%`,
-            '--duration': `${10 + Math.random() * 15}s`
-          } as any}
-        >
-          {['🌿', '🍃', '🍀', '🍂'][Math.floor(Math.random() * 4)]}
-        </div>
-      ))}
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-yellow-300 via-lime-500 to-emerald-600">
+      
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white/20 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-yellow-400/20 rounded-full blur-3xl"></div>
 
-      <div className="bg-white/95 backdrop-blur-md p-8 rounded-[3.5rem] shadow-2xl border-b-8 border-green-700 max-w-md w-full z-10 relative">
-        <div className="absolute -top-14 left-1/2 -translate-x-1/2">
-          <div className={`${selectedAvatar.color} w-28 h-28 rounded-full flex items-center justify-center shadow-xl border-4 border-white floating text-6xl`}>
-            {selectedAvatar.icon}
+      <div className="bg-white/90 backdrop-blur-md p-8 rounded-[4rem] shadow-2xl border-b-[12px] border-emerald-600 max-w-md w-full z-10 relative">
+        
+        <div className="absolute -top-16 left-1/2 -translate-x-1/2">
+          <div className={`${selectedAvatar.color} w-32 h-32 rounded-full flex items-center justify-center shadow-2xl border-8 border-white p-4 transition-all duration-500 hover:scale-110`}>
+            <AvatarIcon id={selectedAvatar.id} />
           </div>
         </div>
 
-        <div className="text-center mt-14 mb-8">
-          <h1 className="text-6xl font-black text-green-800 mb-1 tracking-tighter">Kidoo</h1>
-          <div className="inline-block bg-amber-400 px-4 py-1 rounded-full shadow-sm">
-            <p className="text-green-900 font-black uppercase tracking-widest text-xs">Juega y Aprende</p>
+        <div className="text-center mt-16 mb-10">
+          <h1 className="text-7xl font-black text-emerald-800 mb-2 tracking-tighter drop-shadow-sm">Kidoo</h1>
+          <div className="inline-block bg-yellow-400 px-6 py-1.5 rounded-full shadow-lg transform -rotate-1">
+            <p className="text-emerald-900 font-black uppercase tracking-widest text-xs">Juega y Aprende</p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-4">
-            <label className="block text-green-900 text-[10px] font-black text-center uppercase tracking-widest">¿Qué animal eres hoy?</label>
-            <div className="grid grid-cols-4 gap-3">
+            <label className="block text-emerald-900 text-[11px] font-black text-center uppercase tracking-widest opacity-70">¿Qué animal eres hoy?</label>
+            
+            <div className="flex justify-center gap-4">
               {ANIMAL_AVATARS.map((av) => (
                 <button
                   key={av.id}
                   type="button"
                   onClick={() => setSelectedAvatar(av)}
-                  className={`flex flex-col items-center p-2 rounded-2xl transition-all border-2 ${
-                    selectedAvatar.id === av.id 
-                    ? 'border-amber-400 bg-amber-50 scale-110 shadow-lg' 
-                    : 'border-transparent opacity-60 hover:opacity-100'
-                  }`}
+                  className={`
+                    relative group w-16 h-16 rounded-full transition-all duration-300 flex items-center justify-center p-2
+                    ${selectedAvatar.id === av.id 
+                      ? `${av.color} scale-125 shadow-2xl ring-8 ${av.glow} z-20` 
+                      : 'bg-emerald-50 opacity-60 hover:opacity-100 hover:scale-110'
+                    }
+                  `}
                 >
-                  <div className="text-3xl mb-1">{av.icon}</div>
-                  <span className="text-[9px] font-black text-green-800 uppercase">{av.label}</span>
+                  <AvatarIcon id={av.id} />
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Escribe tu nombre"
-              className="w-full px-6 py-4 rounded-2xl bg-green-50 text-green-900 placeholder-green-300 border-2 border-green-100 focus:border-amber-400 outline-none transition-all font-bold text-lg text-center shadow-inner"
+              placeholder="Tu nombre de explorador"
+              className="w-full px-8 py-5 rounded-[2rem] bg-emerald-50 text-emerald-900 placeholder-emerald-200 border-4 border-emerald-100 focus:border-yellow-400 focus:bg-white outline-none transition-all font-black text-xl text-center shadow-inner"
               required
             />
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Tu clave secreta"
-              className="w-full px-6 py-4 rounded-2xl bg-green-50 text-green-900 placeholder-green-300 border-2 border-green-100 focus:border-amber-400 outline-none transition-all font-bold text-lg text-center shadow-inner"
+              placeholder="Clave secreta"
+              className="w-full px-8 py-5 rounded-[2rem] bg-emerald-50 text-emerald-900 placeholder-emerald-200 border-4 border-emerald-100 focus:border-yellow-400 focus:bg-white outline-none transition-all font-black text-xl text-center shadow-inner"
               required
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-green-600 hover:bg-green-500 text-white font-extrabold py-5 rounded-2xl shadow-[0_6px_0_0_#166534] active:translate-y-1 active:shadow-none transition-all text-2xl uppercase tracking-widest mt-2"
+            className="w-full bg-emerald-500 hover:bg-emerald-400 text-white font-black py-6 rounded-[2rem] shadow-[0_10px_0_0_#059669] active:translate-y-2 active:shadow-[0_4px_0_0_#059669] transition-all text-2xl uppercase tracking-[0.2em] mt-4 flex items-center justify-center gap-3 border-t-4 border-white/30"
           >
-            ¡Entrar! 🦁
+            ¡ENTRAR! 🐾
           </button>
         </form>
       </div>
 
-      <div className="mt-8 flex items-center gap-2 text-white/50 font-bold bg-black/20 px-6 py-2 rounded-full text-[10px] uppercase tracking-widest">
-        Kidoo • El Bosque del Saber 🐾
+      <div className="mt-12 text-emerald-900/60 font-black uppercase tracking-[0.4em] text-[10px] bg-white/30 px-6 py-2 rounded-full backdrop-blur-sm shadow-sm">
+        Explora • Aprende • Diviértete 🐾
       </div>
     </div>
   );
